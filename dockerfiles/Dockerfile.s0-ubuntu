@@ -1,0 +1,15 @@
+FROM ubuntu:25.04
+
+RUN apt-get update
+
+RUN apt-get install -y \
+    python3 \
+    python3-pip \
+    openssh-client \
+    sshpass \
+    netcat-openbsd \
+    jq \
+    python3-venv \
+    ansible
+
+ENTRYPOINT ["/root/app/start.sh"]

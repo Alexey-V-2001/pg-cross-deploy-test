@@ -1,0 +1,14 @@
+{
+  "servers": [
+    {
+      "address": "debian",
+      "user": "root",
+      "password": "root_password"
+    },
+    {
+      "address": "almalinux",
+      "user": "root",
+      "password": "root_password"
+    }
+  ]
+}

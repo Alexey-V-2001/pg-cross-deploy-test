@@ -1,0 +1,37 @@
+name: pg-cross-deploy-test
+
+services:
+  ubuntu:
+    container_name: pg-c-d-s0-ubuntu
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile.s0-ubuntu
+    volumes:
+      - ./app:/root/app
+    networks:
+      internal:
+    depends_on:
+      - debian
+      - almalinux
+
+  debian:
+    container_name: pg-c-d-s1-debian
+    build: 
+      context: ./dockerfiles
+      dockerfile: Dockerfile.s1-debian
+    networks:
+      internal:
+    expose: ["22"]
+  
+  almalinux:
+    container_name: pg-c-d-s2-almalinux
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile.s2-almalinux
+    networks:
+      internal:
+    expose: ["22"]
+
+networks:
+  internal:
+    driver: bridge
