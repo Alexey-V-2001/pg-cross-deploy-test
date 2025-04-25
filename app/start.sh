@@ -2,8 +2,6 @@
 
 cd /root/app
 
-echo "=== Updating packages, installing utilities ==="
-
 export TARGET_IPS=$(jq -r '.servers[].address' servers.json | paste -sd "," -)
 echo "=== Waiting for SSH servers to start: ${TARGET_IPS} ==="
 
@@ -23,7 +21,7 @@ done
 echo "=== Configuring SSH keys ==="
 ./setup_ssh_keys.sh
 
-echo "=== Running main script ==="
+echo "=== Run the main script ==="
 
 ./deploy_pg_on_server.sh $TARGET_IPS
 
