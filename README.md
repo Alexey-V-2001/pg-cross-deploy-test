@@ -5,14 +5,10 @@
 ### Objective
 Develop a console application for automated PostgreSQL installation on the least loaded server from a list, including access configuration and functionality verification.
 
----
-
 ### Input Data
 - Two servers:
   - OS: Debian and AlmaLinux (CentOS).
   - Access: Root access via SSH using a private key (the public key is already added to the servers).
-
----
 
 ### Application Requirements
 1. **Launch Parameters**:
@@ -34,6 +30,8 @@ Develop a console application for automated PostgreSQL installation on the least
    - GitHub repository with setup instructions and usage examples.
    - Error handling and clear operation status messages.
 
+---
+
 ## How to Run  
 
 To start testing, run the `docker-compose up` command in the repository folder. The entire process will be displayed in the logs.  
@@ -41,19 +39,30 @@ If manual script execution is required, navigate to the `./app` directory. Run t
 `./deploy_pg_on_server.sh ip1,ip2`.  
 The script will select the least loaded server from the two and deploy PostgreSQL on it, performing the necessary tests.  
 
-### Example Usage  
+### Example Usage
 
-#### Default method (`docker-compose up`)  
+#### Preparing the environment. Setting up keys on servers (containers)
 
-*To be continued...*  
+![Setup SSH keys](https://raw.githubusercontent.com/Alexey-V-2001/pg-cross-deploy-test/refs/heads/assets/assets/setup_ssh_keys.png)
 
-#### Console script (`./deploy_pg_on_server.sh debian,almalinux`)  
+Next, the main script `./app/deploy_pg_on_server.sh debian,almalinux` is executed.
 
-*To be continued...*  
+#### Scenario 1. The least loaded server is `almalinux`
 
-## Implementation Process  
+Executing the main script `deploy_pg_on_server.sh`. Installing PostgreSQL on AlmaLinux:
+![Almalinux logs](https://raw.githubusercontent.com/Alexey-V-2001/pg-cross-deploy-test/refs/heads/assets/assets/logs_almalinux.png)
 
-### How to Run Tests?  
+#### Scenario 2. The least loaded server is `debian`
+
+Executing the main script `deploy_pg_on_server.sh`. Installing PostgreSQL on Debian:
+![Debian logs](https://raw.githubusercontent.com/Alexey-V-2001/pg-cross-deploy-test/refs/heads/assets/assets/logs_debian.png)
+
+---
+
+## Implementation Process 
+***Description of the experience gained, what questions arose, general impressions, what difficulties there were, etc.***
+
+### How to Run Tests?
 
 Docker and Docker Compose were selected as the testing environment.  
 
@@ -66,7 +75,7 @@ To maximize simplicity, I proposed making testing executable via a single comman
    - `s2` – Server 2 running AlmaLinux (CentOS) OS.  
 To avoid SSH key management overhead, **keys will be automatically generated and configured between services during the first orchestration startup (setup_ssh_keys.sh)**.  
 
-### Using Service Names Instead of IP Addresses  
+### Using Service Names Instead of IP Addresses
 
 While the technical specification required using IP addresses, we opted for Docker service names to comply with [official Docker documentation](https://docs.docker.com/compose/how-tos/networking/), improve reliability, and avoid network limitations in Windows environments with virtualization layers (Hyper-V/WSL2). For example, on Windows, accessing containers by IP sometimes caused `Name or service not known` errors, whereas service names worked flawlessly.  
 
@@ -75,6 +84,24 @@ Documentation excerpt:
 > ...  
 > **Tip: Always reference containers by name instead of IP. Otherwise, you’ll need to continuously update IP addresses.**"  
 
-### And Many More Challenges Along the Way  
+***To demonstrate the script's functionality**, an implementation using IP addresses was ultimately added.*
 
-*To be continued...*  
+### PostgreSQL Management Challenges  
+
+The primary issue and cornerstone of this mini-project was the inability to use `systemd` utilities. Since Docker employs lightweight images that do not run with `systemd`, all operations (starting, restarting, initializing the database, stopping, etc.) had to be performed using PostgreSQL’s built-in tools. Personally, I found `pg_ctl` rather finicky - it wouldn’t simply output an error, forcing me to locate and read log files. Debian deserves special mention here: its `/usr/bin/pg_ctl` spawned a parallel process alongside the main `postgresql` service, resulting in server process duplication.  
+
+### Miscellaneous  
+
+Most problems stemmed from a mismatch between "expectation and reality." Here are a few examples:  
+- **Missing Familiar Commands in Docker**:  
+   - AlmaLinux lacked the `service` utility for managing services (though Debian, notably, includes it).  
+   - The absence of `systemctl` was a particular headache. While this is inherent to Docker, it significantly increased development complexity and duration.  
+   - etc.  
+- **Certain Commands Failed on Re-execution, Requiring Complex Logic**:  
+   - Re-running the main script, `deploy_pg_on_server.sh`, triggered database initialization even when the DB already existed. This necessitated adding data checks and conditional initialization.  
+   - Starting PostgreSQL in AlmaLinux: If the DBMS was already running, it returned an exit code 1, crashing Ansible. A dedicated script was written to handle the DBMS’s current status. A simple `ignore_errors` would’ve been a poor workaround.  
+   - etc.  
+- **Missing Basic Utilities (e.g., `nano`, `netcat`, `findutils`, `iproute`)**:  
+   - This is more of a lightweight-distro inconvenience; such cases are rare in practice.  
+- **The Joys of Shell Scripting**:  
+   - Writing `sh` scripts remains a unique "delight." Despite my experience, conditional logic, escaping, multiline quoted commands, and the like are hard to rival (I’d argue even university-level Assembly felt easier at times-ha ha).
