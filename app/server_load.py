@@ -145,8 +145,8 @@ def main():
         sorted_servers[1]['os']: [sorted_servers[1]['ip'], sorted_servers[1]['load']]
     }
     
-    # Output the result in JSON format for easy processing in bash
-    print(json.dumps(result, indent=4))
+    # Output the result in JSON format for easy processing in bash (order is saved)
+    print(json.dumps(result, indent=4, ensure_ascii=False))
 
 if __name__ == "__main__":
     main()
